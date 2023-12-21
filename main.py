@@ -1,112 +1,67 @@
 #TOKEN = '6543726409:AAHAdq7oWWnedQj6GlAd8KFLDVJubMZcKNk'
-import re
+from chat_bot_root import ChatBot
+
 import telepot
 from telepot.loop import MessageLoop
-from parsing import TParser
-from selenium import webdriver
 
-#схема работы бота, чтоб убедительно было
-#комменты
-#помощь
-#кнопочки
-#команды
-#курс тенге
-#курс доллара
-#курс евро
-#всё это через if
-#закинуть класс бота в другой модуль
-#проработать таймаут для выключения
-#переделать парсер через beautifulsoup4
+
+'''
+[клиент]<--[ответ]<-[обработка]
+   |                     ^
+   v                     |
+[цикл]->[запрос]--->[класс бота]
+
+'''
 
 print("Бот запущен")
-class ChatBot:
-    def __init__(self):
-        self.welcome_message = "Привет! Я ваш чат-бот. Как я могу помочь вам сегодня?"
 
-    def _hello(self, user_input):
-        hello_patterns = {
-            r'\bпр.вет\b': 'привет',
-            r'\bздр.(в)ствуй(те)?\b': 'здравствуйте',
-            r'\bдобрый\sдень\b': 'добрый день',
-            r'\bдобрый\sвеч.р\b': 'добрый вечер',
-            r'\bдобр.е\sутр.\b': 'доброе утро',
-            r'\bзд.ров.\b' : 'здорово'
-        }
-        for pattern, hello_text in hello_patterns.items():
-            if re.search(pattern, user_input, re.IGNORECASE):
-                return hello_text
-        return None
-    def is_goodbye(self, user_input):
-        goodbye_patterns = {
-            r'\bп.к.\b': 'пока',
-            r'\bд.\sсв.дан.я\b': 'до свидания',
-            r'\bпр.щай\b': 'прощай',
-            r'\bдо\sскор.й\sвстреч.\b': 'до скорой встречи',
-            r'\bвс..о\sдобр...\b': 'всего доброго',
-            r'\bп.кед.\b': 'покеда'
-        }
 
-        for pattern, goodbye_text in goodbye_patterns.items():
-            if re.search(pattern, user_input, re.IGNORECASE):
-                return goodbye_text
-
-        return None
-
-    TPars = TParser("https://www.timeserver.ru/cities/ru/chita-zabaykalsky-krai")
-
-    def need_time(self, user_input):
-        need_time_patterns = [
-            r'\bскажи\b\s*время\b',  # "скажи время"
-            r'\bпокажи\b\s*время\b',  # "покажи время"
-            r'\bвремя\b'  # "время"
-        ]
-        for pattern in need_time_patterns:
-            if re.search(pattern, user_input, re.IGNORECASE):
-                #надо вывести, что бот думает
-                self.TPars.driver = webdriver.Edge()
-                return self.TPars.need_time()
-        return None
-
-    def respond(self, user_input):
-        '''
-        Генерирует ответ, в зависимости от условия
-        :param user_input: текст сообщения пользователя
-        :return: текст сообщения на вывод
-        '''
-
-        goodbye_text = self.is_goodbye(user_input)
-        need_time_text = self.need_time(user_input)
-        hello_text = self._hello(user_input)
-
-        if hello_text:
-            return f"{hello_text.capitalize()}! Я ваш чат-бот. Как я могу помочь вам сегодня?"
-        if goodbye_text:
-            return f"{goodbye_text.capitalize()}! Если у тебя будут еще вопросы, спрашивай."
-        if need_time_text:
-            self.TPars.driver.quit()
-            return f"Текущее местное время " + need_time_text
-        else:
-            return "Бот: Это интересно! Я еще учусь и не могу обсуждать всё, но давай продолжим разговор."
 
 def handle(msg):
+    '''
+    Получает из мессенджера сообщение
+    :param msg: введённое сообщение
+    :return: ответ
+    '''
     content_type, chat_type, chat_id = telepot.glance(msg)
     user_input = msg['text']  # тут лежит текст сообщения
 
     if content_type == 'text':
         if user_input.lower() == '/start':
             response = "Привет! Я чат-бот. Как я могу помочь тебе сегодня?"
- #/time       
-else:
-            response = my_bot.respond(user_input)
+        if user_input.lower() == '/help':
+            response = ("Этот бот может:\n "
+                        "Поздороваться\n "
+                        "Попрощаться\n "
+                        "Скажет курс валюты\n "
+                        "Скажет местное время\n "
+                        "Скажет пинг сети\n"
+                        "Поработает с файлами (/json /txt /xlsx /csv)\n "
+                        "Сгенерирует числа от а до b ([a,b])")
+        else:
+            if py_bot.get_req_id():
+                wait_message = bot.sendMessage(chat_id, "Ожидайте, бот думает...")
+                response = py_bot.respond(user_input)
+                bot.deleteMessage((chat_id, wait_message['message_id']))
+            else:
+                response = py_bot.respond(user_input)
         bot.sendMessage(chat_id, response)
+    py_bot.set_req_id(0)
+
+
+
 
 def main():
+    '''
+    "Наружнее" пространство бота
+    :return: ничего
+    '''
     TOKEN = '6543726409:AAHAdq7oWWnedQj6GlAd8KFLDVJubMZcKNk'
     global bot  # Чтобы можно было использовать в других функциях
     bot = telepot.Bot(TOKEN)
 
-    global my_bot #юзается выше
-    my_bot = ChatBot()
+    global py_bot #юзается выше
+    py_bot = ChatBot()
 
     MessageLoop(bot, handle).run_as_thread()
 
@@ -116,5 +71,5 @@ def main():
     while True:
         pass
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # main не запустится, если этот файл куда-то подключить
     main()
