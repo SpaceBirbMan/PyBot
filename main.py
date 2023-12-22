@@ -5,6 +5,7 @@ from telepot.loop import MessageLoop
 from parsing import TParser
 from selenium import webdriver
 
+#схема работы бота, чтоб убедительно было
 #комменты
 #помощь
 #кнопочки
