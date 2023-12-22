@@ -15,6 +15,7 @@ from selenium import webdriver
 #всё это через if
 #закинуть класс бота в другой модуль
 #проработать таймаут для выключения
+#переделать парсер через beautifulsoup4
 
 print("Бот запущен")
 class ChatBot:
@@ -93,7 +94,8 @@ def handle(msg):
     if content_type == 'text':
         if user_input.lower() == '/start':
             response = "Привет! Я чат-бот. Как я могу помочь тебе сегодня?"
-        else:
+ #/time       
+else:
             response = my_bot.respond(user_input)
         bot.sendMessage(chat_id, response)
 
@@ -102,7 +104,7 @@ def main():
     global bot  # Чтобы можно было использовать в других функциях
     bot = telepot.Bot(TOKEN)
 
-    global my_bot
+    global my_bot #юзается выше
     my_bot = ChatBot()
 
     MessageLoop(bot, handle).run_as_thread()
